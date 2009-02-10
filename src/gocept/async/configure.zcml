@@ -1,0 +1,6 @@
+<configure xmlns="http://namespaces.zope.org/zope">
+
+  <utility factory=".task.AsyncFunction" name="gocept.async.function" />
+
+</configure>
+
