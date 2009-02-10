@@ -1,12 +1,16 @@
 # Copyright (c) 2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 
+import ZODB.POSException
 import decorator
 import logging
 import lovely.remotetask.interfaces
 import lovely.remotetask.processor
 import persistent
+import random
 import rwproperty
+import time
+import transaction
 import zope.app.authentication
 import zope.dottedname
 import zope.security.management
@@ -49,7 +53,26 @@ class AsyncFunction(object):
     def __call__(self, service, jobid, input):
         log.info("Running async function %s" % jobid)
         self.login(input.principal)
-        input.f(*input.args, **input.kwargs)
+        retries = 0
+        while True:
+            try:
+                input.f(*input.args, **input.kwargs)
+                transaction.commit()
+            except ZODB.POSException.ConflictError, e:
+                log.exception(e)
+                transaction.abort()
+                retries += 1
+                if retries >= 3:
+                    break
+                # Stagger retry:
+                time.sleep(random.uniform(0, 2**(retries)))
+            except Exception, e:
+                log.error("Error during publish/retract", exc_info=True)
+                transaction.abort()
+                break
+            else:
+                # Everything okay. 
+                break
 
 
     @staticmethod
@@ -61,7 +84,6 @@ class AsyncFunction(object):
         auth = zope.component.getUtility(
             zope.app.security.interfaces.IAuthentication)
         participation.setPrincipal(auth.getPrincipal(principal))
-
 
 
 def function(service=u''):
@@ -78,12 +100,15 @@ def function(service=u''):
             request, lovely.remotetask.processor.ProcessorRequest)
 
     def decorated(f, *args, **kwargs):
-        if is_async():
+        tasks = zope.component.queryUtility(
+            lovely.remotetask.interfaces.ITaskService, name=service)
+        if tasks is None:
+            log.warning('Cannot create asynchronous call to %s.%s because '
+                        'TaskService %r could not be found.' % (
+                            f.__module__, f.__name__, service))
+        if tasks is None or is_async():
             return f(*args, **kwargs)
         desc = TaskDescription(f, args, kwargs)
-        tasks = zope.component.getUtility(
-            lovely.remotetask.interfaces.ITaskService,
-            name=service)
         tasks.add(u'gocept.async.function', desc)
 
     return decorator.decorator(decorated)

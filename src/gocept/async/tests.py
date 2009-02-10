@@ -1,13 +1,17 @@
 # Copyright (c) 2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 
+import StringIO
+import ZODB.POSException
 import cPickle
 import gocept.async
-import time
+import gocept.async.task
+import logging
 import lovely.remotetask
 import lovely.remotetask.interfaces
 import persistent
 import pkg_resources
+import time
 import transaction
 import unittest
 import zope.app.testing.functional
@@ -22,29 +26,24 @@ async_layer = zope.app.testing.functional.ZCMLLayer(
 
 computings = []
 
-@gocept.async.function(service=u'events')
-def compute_something(a, b=None):
-    computings.append((a,b))
-
 
 class DataObject(persistent.Persistent):
     pass
 
 
-
-def process():
+def process(name='events'):
     # Start asynchronous processing in a new thread.
     transaction.commit()
     tasks = zope.component.getUtility(
-        lovely.remotetask.interfaces.ITaskService, name='events')
-    tasks.processorArguments = {'waitTime': 0.0}
+        lovely.remotetask.interfaces.ITaskService, name=name)
+    tasks.processorArguments['waitTime'] = 0
+    last_job = tasks._queue[-1]
     tasks.startProcessing()
-    while tasks.hasJobsWaiting():
-        time.sleep(0.1)
+    while last_job.status != lovely.remotetask.interfaces.COMPLETED:
+        time.sleep(0.02)
         transaction.abort()
     tasks.stopProcessing()
-    transaction.commit()
-    time.sleep(0.02)
+    time.sleep(0.1)  # let the threads finish
 
 
 class AsyncTest(zope.app.testing.functional.BrowserTestCase):
@@ -58,6 +57,9 @@ class AsyncTest(zope.app.testing.functional.BrowserTestCase):
         self.sm = zope.component.getSiteManager()
         self.tasks = self.getRootFolder()['tasks'] = (
             lovely.remotetask.TaskService())
+        self.tasks.processorFactory = (
+            lovely.remotetask.processor.MultiProcessor)
+        self.tasks.processorArguments = {'maxThreads': 1}
         self.sm.registerUtility(
             self.tasks,
             lovely.remotetask.interfaces.ITaskService,
@@ -73,7 +75,22 @@ class AsyncTest(zope.app.testing.functional.BrowserTestCase):
         super(AsyncTest, self).tearDown()
 
 
-class TestAsyncFunction(unittest.TestCase):
+
+def raise_error(exception):
+    computings.append(1)
+    raise exception()
+
+
+def increment_and_raise(obj):
+    obj.count += 1
+    raise ValueError(obj.count)
+
+
+def increment(obj):
+    obj.count += 1
+
+
+class TestAsyncFunction(AsyncTest):
 
     def test_login(self):
         self.fail()
@@ -81,14 +98,51 @@ class TestAsyncFunction(unittest.TestCase):
     def test_no_login(self):
         self.fail()
 
-    def test_conflict(self):
-        self.fail()
+    def test_conflict_does_retry(self):
+        desc = gocept.async.task.TaskDescription(
+            raise_error, (ZODB.POSException.ConflictError,), {})
+        self.tasks.add(u'gocept.async.function', desc)
+        process()
+        self.assertEquals([1, 1, 1], computings)
+
+    def test_error_does_not_retry(self):
+        desc = gocept.async.task.TaskDescription(
+            raise_error, (ValueError,), {})
+        self.tasks.add(u'gocept.async.function', desc)
+        process()
+        self.assertEquals([1], computings)
+
+    def test_error_aborts(self):
+        self.getRootFolder().count = 0
+        desc = gocept.async.task.TaskDescription(
+            increment_and_raise, (self.getRootFolder(),), {})
+        self.tasks.add(u'gocept.async.function', desc)
+        process()
+        transaction.abort()  # abort to see changes
+        self.assertEquals(0, self.getRootFolder().count)
+
+    def test_no_error_commits(self):
+        self.getRootFolder().count = 0
+        desc = gocept.async.task.TaskDescription(
+            increment, (self.getRootFolder(),), {})
+        self.tasks.add(u'gocept.async.function', desc)
+        process()
+        transaction.abort()  # abort to see changes
+        self.assertEquals(1, self.getRootFolder().count)
+
+
+
+@gocept.async.function(service=u'events')
+def compute_something(a, b=None):
+    computings.append((a,b))
+
+
+@gocept.async.function(service='does-not-exist')
+def compute_now(a, b):
+    computings.append((a,b))
 
 
 class TestDecorator(AsyncTest):
-
-    def test_reentrant(self):
-        pass
 
     def test_simple(self):
         compute_something(5)
@@ -114,8 +168,26 @@ class TestDecorator(AsyncTest):
         compute_something(5, data)
         self.assertRaises(cPickle.UnpickleableError, process)
 
-    def test_service_not_found(self):
-        self.fail()
+    def test_no_service_calls_synchronously(self):
+        compute_now(4, 2)
+        self.assertEquals([(4, 2)], computings)
+
+    def test_no_service_logs_warning(self):
+        logfile = StringIO.StringIO()
+        log_handler = logging.StreamHandler(logfile)
+        logging.root.addHandler(log_handler)
+        old_log_level = logging.root.level
+        logging.root.setLevel(logging.INFO)
+        try:
+            compute_now(6, 2)
+            self.assertEquals(
+                ("Cannot create asynchronous call to "
+                 "gocept.async.tests.compute_now because TaskService "
+                 "'does-not-exist' could not be found.\n"),
+                logfile.getvalue())
+        finally:
+            logging.root.removeHandler(log_handler)
+            logging.root.setLevel(old_log_level)
 
 
 def test_suite():

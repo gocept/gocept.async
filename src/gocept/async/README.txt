@@ -30,8 +30,10 @@ itself[#test-task-service]_[#importable]_.
     >>> import zope.component
     >>> import lovely.remotetask
     >>> import lovely.remotetask.interfaces
+    >>> import lovely.remotetask.processor
     >>> sm = zope.component.getSiteManager()
     >>> getRootFolder()['tasks'] = tasks = lovely.remotetask.TaskService()
+    >>> tasks.processorFactory = lovely.remotetask.processor.MultiProcessor
     >>> sm.registerUtility(
     ...     tasks, lovely.remotetask.interfaces.ITaskService, name='events')
 
