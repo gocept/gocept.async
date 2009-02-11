@@ -42,12 +42,12 @@ def process(name='events'):
     tasks.startProcessing()
     try:
         while True:
+            transaction.abort()
             if last_job.status == lovely.remotetask.interfaces.COMPLETED:
                 break
             if last_job.status == lovely.remotetask.interfaces.ERROR:
                 raise AssertionError("Task failed.")
             time.sleep(0.02)
-            transaction.abort()
     finally:
         tasks.stopProcessing()
         time.sleep(0.1)  # let the threads finish
