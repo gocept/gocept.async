@@ -16,8 +16,9 @@ import transaction
 import unittest
 import zope.app.testing.functional
 import zope.component
+import zope.publisher.browser
 import zope.security.management
-
+import zope.security.testing
 
 async_layer = zope.app.testing.functional.ZCMLLayer(
     pkg_resources.resource_filename(__name__, 'ftesting.zcml'),
@@ -39,11 +40,28 @@ def process(name='events'):
     tasks.processorArguments['waitTime'] = 0
     last_job = tasks._queue[-1]
     tasks.startProcessing()
-    while last_job.status != lovely.remotetask.interfaces.COMPLETED:
-        time.sleep(0.02)
-        transaction.abort()
-    tasks.stopProcessing()
-    time.sleep(0.1)  # let the threads finish
+    try:
+        while True:
+            if last_job.status == lovely.remotetask.interfaces.COMPLETED:
+                break
+            if last_job.status == lovely.remotetask.interfaces.ERROR:
+                raise AssertionError("Task failed.")
+            time.sleep(0.02)
+            transaction.abort()
+    finally:
+        tasks.stopProcessing()
+        time.sleep(0.1)  # let the threads finish
+
+
+def login(user):
+    p = zope.security.testing.Principal(u'zope.user')
+    request = zope.publisher.browser.TestRequest()
+    request.setPrincipal(p)
+    zope.security.management.newInteraction(request)
+
+
+def logout():
+    zope.security.management.endInteraction()
 
 
 class AsyncTest(zope.app.testing.functional.BrowserTestCase):
@@ -91,12 +109,6 @@ def increment(obj):
 
 
 class TestAsyncFunction(AsyncTest):
-
-    def test_login(self):
-        self.fail()
-
-    def test_no_login(self):
-        self.fail()
 
     def test_conflict_does_retry(self):
         desc = gocept.async.task.TaskDescription(
