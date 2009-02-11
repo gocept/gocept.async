@@ -5,6 +5,7 @@
   <include package="zope.component" />
   <include package="zope.location" />
   <include package="zope.security" file="meta.zcml" />
+  <include package="zope.app.security" file="meta.zcml"/>
   <include package="zope.app.security" />
   <include package="zope.app.component" file="meta.zcml"/>
   <include package="zope.app.component" />
@@ -14,6 +15,8 @@
   <include package="zope.app.appsetup" />
 
   <include package="gocept.async" />
+
+  <principal id="zope.user" login="user" password="userpw" title="User"/>
 
 </configure>
 

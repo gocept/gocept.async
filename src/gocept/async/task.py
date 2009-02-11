@@ -52,10 +52,10 @@ class AsyncFunction(object):
 
     def __call__(self, service, jobid, input):
         log.info("Running async function %s" % jobid)
-        self.login(input.principal)
         retries = 0
         while True:
             try:
+                self.login(input.principal)
                 input.f(*input.args, **input.kwargs)
                 transaction.commit()
             except ZODB.POSException.ConflictError, e:
@@ -66,8 +66,8 @@ class AsyncFunction(object):
                     break
                 # Stagger retry:
                 time.sleep(random.uniform(0, 2**(retries)))
-            except Exception, e:
-                log.error("Error during publish/retract", exc_info=True)
+            except Exception:
+                log.error("Error during async function", exc_info=True)
                 transaction.abort()
                 break
             else:
