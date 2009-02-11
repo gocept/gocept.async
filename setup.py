@@ -23,7 +23,8 @@ setup(
     description = "Asynchronous function calls using lovely.remotetask",
     long_description = (
         open('README.txt').read() + "\n\n" +
-        read('README.txt')
+        read('README.txt') +
+        open('CHANGES.txt').read() + "\n\n"
     ),
     license = "ZPL 2.1",
     keywords = "zope3 async asynchronous function",
