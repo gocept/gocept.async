@@ -47,7 +47,7 @@ setup(
     install_requires = [
         'ZODB3',
         'decorator',
-        'lovely.remotetask',
+        'lovely.remotetask>=0.3',
         'rwproperty',
         'setuptools',
         'zope.app.authentication',
