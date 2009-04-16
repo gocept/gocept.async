@@ -19,6 +19,8 @@ import zope.component
 import zope.publisher.browser
 import zope.security.management
 import zope.security.testing
+from zope.testing import doctest
+
 
 async_layer = zope.app.testing.functional.ZCMLLayer(
     pkg_resources.resource_filename(__name__, 'ftesting.zcml'),
@@ -50,7 +52,7 @@ def process(name='events'):
             time.sleep(0.02)
     finally:
         tasks.stopProcessing()
-        time.sleep(0.1)  # let the threads finish
+        time.sleep(0.5)  # let the threads finish
 
 
 def login(user):
@@ -206,9 +208,10 @@ def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestDecorator))
     suite.addTest(unittest.makeSuite(TestAsyncFunction))
+
     readme = zope.app.testing.functional.FunctionalDocFileSuite(
-        'README.txt')
+        'README.txt',
+        optionflags=doctest.INTERPRET_FOOTNOTES)
     readme.layer = async_layer
-    readme.test_class = AsyncTest
     suite.addTest(readme)
     return suite
