@@ -15,7 +15,7 @@ to transaction integration issues.
 The decorator ``gocept.async.function`` takes exactly one argument, the name of
 a lovely.remotetask.interfaces.ITaskService utility. Note that `gocept.async`
 does **not** define any task service by
-itself [#test-task-service]_ [#importable]_ . 
+itself [#test-task-service]_ [#importable]_ .
 When the decorated function is called it returns nothing:
 
 >>> heavy_computing(2, 7)
