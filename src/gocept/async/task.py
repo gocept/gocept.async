@@ -60,7 +60,7 @@ class AsyncFunction(object):
         while True:
             try:
                 old_site = zope.site.hooks.getSite()
-                if input.site:
+                if input.site is not None:
                     zope.site.hooks.setSite(input.site)
                 self.login(input.principal)
                 input.f(*input.args, **input.kwargs)
