@@ -22,6 +22,8 @@ log = logging.getLogger(__name__)
 
 class TaskDescription(persistent.Persistent):
 
+    site = None
+
     def __init__(self, f, args, kwargs):
         self.f = f
         self.args = args
@@ -58,7 +60,8 @@ class AsyncFunction(object):
         while True:
             try:
                 old_site = zope.site.hooks.getSite()
-                zope.site.hooks.setSite(input.site)
+                if self.site:
+                    zope.site.hooks.setSite(input.site)
                 self.login(input.principal)
                 input.f(*input.args, **input.kwargs)
                 transaction.commit()
