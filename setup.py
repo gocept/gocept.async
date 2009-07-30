@@ -54,6 +54,7 @@ setup(
         'zope.app.security',
         'zope.app.testing',
         'zope.security',
+        'zope.site',
         'zope.testing',
     ],
 )

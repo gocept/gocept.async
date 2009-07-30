@@ -14,6 +14,7 @@ import transaction
 import zope.app.authentication
 import zope.dottedname
 import zope.security.management
+import zope.site.hooks
 
 
 log = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ class TaskDescription(persistent.Persistent):
         self.args = args
         self.kwargs = kwargs
         self.principal = self.get_principal()
+        self.site = zope.site.hooks.getSite()
 
     @staticmethod
     def get_principal():
@@ -55,6 +57,8 @@ class AsyncFunction(object):
         retries = 0
         while True:
             try:
+                old_site = zope.site.hooks.getSite()
+                zope.site.hooks.setSite(input.site)
                 self.login(input.principal)
                 input.f(*input.args, **input.kwargs)
                 transaction.commit()
@@ -71,9 +75,10 @@ class AsyncFunction(object):
                 transaction.abort()
                 break
             else:
-                # Everything okay. 
+                # Everything okay.
                 break
-
+            finally:
+                zope.site.hooks.setSite(old_site)
 
     @staticmethod
     def login(principal):

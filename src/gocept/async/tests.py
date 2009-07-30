@@ -1,6 +1,7 @@
 # Copyright (c) 2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 
+from zope.testing import doctest
 import StringIO
 import ZODB.POSException
 import cPickle
@@ -19,7 +20,7 @@ import zope.component
 import zope.publisher.browser
 import zope.security.management
 import zope.security.testing
-from zope.testing import doctest
+import zope.site.testing
 
 
 async_layer = zope.app.testing.functional.ZCMLLayer(
@@ -56,7 +57,7 @@ def process(name='events'):
 
 
 def login(user):
-    p = zope.security.testing.Principal(u'zope.user')
+    p = zope.security.testing.Principal(user)
     request = zope.publisher.browser.TestRequest()
     request.setPrincipal(p)
     zope.security.management.newInteraction(request)
@@ -204,10 +205,43 @@ class TestDecorator(AsyncTest):
             logging.root.setLevel(old_log_level)
 
 
+class LocalAuthenticationExample(object):
+
+    zope.interface.implements(zope.authentication.interfaces.IAuthentication)
+
+    def getPrincipal(self, id):
+        return zope.security.testing.Principal(id)
+
+
+task_result = None
+
+@gocept.async.function('events')
+def task_that_needs_site():
+    global task_result
+    task_result = 5
+
+
+class TestSite(AsyncTest):
+
+    def test_site_should_be_stored(self):
+        root = self.getRootFolder()
+        site = zope.site.folder.Folder()
+        root['site'] = site
+        site = root['site']
+        zope.site.testing.createSiteManager(site)
+        zope.site.hooks.setSite(site)
+        site.getSiteManager().registerUtility(LocalAuthenticationExample())
+        login('myuser')
+        task_that_needs_site()
+        process()
+        self.assertEqual(5, task_result)
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestDecorator))
     suite.addTest(unittest.makeSuite(TestAsyncFunction))
+    suite.addTest(unittest.makeSuite(TestSite))
 
     readme = zope.app.testing.functional.FunctionalDocFileSuite(
         'README.txt',
