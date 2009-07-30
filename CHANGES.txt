@@ -4,6 +4,9 @@ Changes
 0.3 (unreleased)
 ----------------
 
+- Remember the site that was active when the async function was defined and
+  restore it when it is run.
+
 0.2 (2009-04-16)
 ----------------
 
