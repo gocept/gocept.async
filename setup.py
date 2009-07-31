@@ -52,6 +52,7 @@ setup(
         'setuptools',
         'zope.authentication',
         'zope.app.testing',
+        'zope.component',
         'zope.deferredimport',
         'zope.dottedname',
         'zope.security',
@@ -59,8 +60,12 @@ setup(
         'zope.testing',
     ],
     extras_require=dict(test=[
+        'zope.app.appsetup',
         'zope.app.security',
         'zope.app.testing',
+        'zope.container',
+        'zope.location',
         'zope.publisher',
+        'zope.traversing',
     ]),
 )
