@@ -12,6 +12,7 @@ import rwproperty
 import time
 import transaction
 import zope.authentication.interfaces
+import zope.component
 import zope.dottedname
 import zope.security.management
 import zope.site.hooks
