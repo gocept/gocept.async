@@ -50,8 +50,7 @@ setup(
         'lovely.remotetask>=0.3',
         'rwproperty',
         'setuptools',
-        'zope.app.authentication',
-        'zope.app.security',
+        'zope.authentication',
         'zope.app.testing',
         'zope.deferredimport',
         'zope.dottedname',
@@ -60,6 +59,7 @@ setup(
         'zope.testing',
     ],
     extras_require=dict(test=[
+        'zope.app.security',
         'zope.app.testing',
         'zope.publisher',
     ]),
