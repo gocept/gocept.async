@@ -53,8 +53,14 @@ setup(
         'zope.app.authentication',
         'zope.app.security',
         'zope.app.testing',
+        'zope.deferredimport',
+        'zope.dottedname',
         'zope.security',
         'zope.site',
         'zope.testing',
     ],
+    extras_require=dict(test=[
+        'zope.app.testing',
+        'zope.publisher',
+    ]),
 )
