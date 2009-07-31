@@ -11,7 +11,7 @@ def read(filename):
 
 
 name = "gocept.async"
-version = "0.3dev"
+version = '0.3'
 
 
 setup(

@@ -1,7 +1,7 @@
 Changes
 +++++++
 
-0.3 (unreleased)
+0.3 (2009-07-31)
 ----------------
 
 - Remember the site that was active when the async function was defined and
