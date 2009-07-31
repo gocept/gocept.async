@@ -11,7 +11,7 @@ import random
 import rwproperty
 import time
 import transaction
-import zope.app.authentication
+import zope.authentication.interfaces
 import zope.dottedname
 import zope.security.management
 import zope.site.hooks
@@ -90,7 +90,7 @@ class AsyncFunction(object):
         interaction = zope.security.management.getInteraction()
         participation = interaction.participations[0]
         auth = zope.component.getUtility(
-            zope.app.security.interfaces.IAuthentication)
+            zope.authentication.interfaces.IAuthentication)
         participation.setPrincipal(auth.getPrincipal(principal))
 
 
