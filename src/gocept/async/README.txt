@@ -46,6 +46,23 @@ zope.user
 >>> gocept.async.tests.logout()
 
 
+If an async function is called while the process is already async'ed the
+function is called immediately:
+
+>>> @gocept.async.function(service='events')
+... def call_another():
+...     print "Before"
+...     heavy_computing(1, 2)
+...     print "After"
+>>> call_another.undecorated.__module__ = 'gocept.async.tests'
+>>> gocept.async.tests.call_another = call_another
+>>> call_another()
+>>> gocept.async.tests.process()
+Before
+Computing 1 + 2 = 3
+After
+
+
 [#cleanup]_
 
 
@@ -81,3 +98,4 @@ zope.user
     ...     tasks, lovely.remotetask.interfaces.ITaskService, name='events')
     >>> del gocept.async.tests.heavy_computing
     >>> del gocept.async.tests.who_am_i
+    >>> del gocept.async.tests.call_another
