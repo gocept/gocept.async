@@ -1,8 +1,8 @@
 Changes
 +++++++
 
-0.4 (unreleased)
-----------------
+0.3.1 (2009-09-02)
+------------------
 
 - Extracted a function to determine wether a function is run asynchronously or
   not.
