@@ -95,18 +95,19 @@ class AsyncFunction(object):
         participation.setPrincipal(auth.getPrincipal(principal))
 
 
-def function(service=u''):
+def is_async():
+    interaction = zope.security.management.queryInteraction()
+    if interaction is None:
+        return False
+    try:
+        request = interaction.participations[0]
+    except IndexError:
+        return False
+    return isinstance(
+        request, lovely.remotetask.processor.ProcessorRequest)
 
-    def is_async():
-        interaction = zope.security.management.queryInteraction()
-        if interaction is None:
-            return False
-        try:
-            request = interaction.participations[0]
-        except IndexError:
-            return False
-        return isinstance(
-            request, lovely.remotetask.processor.ProcessorRequest)
+
+def function(service=u''):
 
     def decorated(f, *args, **kwargs):
         tasks = zope.component.queryUtility(
