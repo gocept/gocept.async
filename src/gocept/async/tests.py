@@ -170,7 +170,7 @@ class TestDecorator(AsyncTest):
         compute_something(5, data)
         self.assertEquals([], computings)
         process()
-        # The "computed" data object is another instnace therefore the lists
+        # The "computed" data object is another instance therefore the lists
         # are not equal
         self.assertNotEquals([(5, data)], computings)
         # But the object has the same oid
