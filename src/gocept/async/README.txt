@@ -63,6 +63,20 @@ Computing 1 + 2 = 3
 After
 
 
+There is a helper to test if currenlty async is in progress:
+
+>>> gocept.async.is_async()
+False
+>>> @gocept.async.function(service='events')
+... def is_async_test():
+...     print gocept.async.is_async()
+>>> is_async_test.undecorated.__module__ = 'gocept.async.tests'
+>>> gocept.async.tests.is_async_test = is_async_test
+>>> is_async_test()
+>>> gocept.async.tests.process()
+True
+
+
 [#cleanup]_
 
 
@@ -99,3 +113,4 @@ After
     >>> del gocept.async.tests.heavy_computing
     >>> del gocept.async.tests.who_am_i
     >>> del gocept.async.tests.call_another
+    >>> del gocept.async.tests.is_async_test

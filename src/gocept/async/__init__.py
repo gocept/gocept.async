@@ -4,4 +4,5 @@
 import zope.deferredimport
 
 zope.deferredimport.define(
-    function='gocept.async.task:function')
+    function='gocept.async.task:function',
+    is_async='gocept.async.task:is_async')

@@ -4,7 +4,8 @@ Changes
 0.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Extracted a function to determine wether a function is run asynchronously or
+  not.
 
 
 0.3 (2009-07-31)
