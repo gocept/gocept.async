@@ -67,7 +67,7 @@ class AsyncFunction(object):
                 input.f(*input.args, **input.kwargs)
                 transaction.commit()
             except ZODB.POSException.ConflictError, e:
-                log.exception(e)
+                log.warning("Conflict error during async task", exc_info=True)
                 transaction.abort()
                 retries += 1
                 if retries >= 3:
