@@ -14,8 +14,35 @@ to transaction integration issues.
 
 The decorator ``gocept.async.function`` takes exactly one argument, the name of
 a lovely.remotetask.interfaces.ITaskService utility. Note that `gocept.async`
-does **not** define any task service by
-itself [#test-task-service]_ [#importable]_ .
+does **not** define any task service by itself.
+
+
+Test Setup
+++++++++++
+
+Note that the decorated function must have an importable module to be usable:
+
+>>> import gocept.async.tests
+>>> heavy_computing.undecorated.__module__ = 'gocept.async.tests'
+>>> gocept.async.tests.heavy_computing = heavy_computing
+
+We defined task-service called ``events`` in this test:
+
+>>> import zope.component
+>>> import lovely.remotetask
+>>> import lovely.remotetask.interfaces
+>>> import lovely.remotetask.processor
+>>> sm = zope.component.getSiteManager()
+>>> getRootFolder()['tasks'] = tasks = lovely.remotetask.TaskService()
+>>> tasks.processorFactory = lovely.remotetask.processor.MultiProcessor
+>>> tasks.processorArguments = {'maxThreads': 1}
+>>> sm.registerUtility(
+...     tasks, lovely.remotetask.interfaces.ITaskService, name='events')
+
+
+Basics
+++++++
+
 When the decorated function is called it returns nothing:
 
 >>> heavy_computing(2, 7)
@@ -26,7 +53,8 @@ When we start the processing of the task service, the function is called:
 Computing 2 + 7 = 9
 
 When the function is called while a user is logged in, the function will be
-called as that user[#proxy]_:
+called as that user (Note that it might be necessary to manually create
+security proxies to enable security in the async function.):
 
 >>> @gocept.async.function('events')
 ... def who_am_i():
@@ -77,40 +105,12 @@ False
 True
 
 
-[#cleanup]_
+Teardown
+++++++++
 
-
-.. [#importable] Note that the decorated function must have an importable
-    module to be usable:
-
-    >>> import gocept.async.tests
-    >>> heavy_computing.undecorated.__module__ = 'gocept.async.tests'
-    >>> gocept.async.tests.heavy_computing = heavy_computing
-
-.. [#test-task-service] We defined task-service called ``events`` in
-    this test:
-
-    >>> import zope.component
-    >>> import lovely.remotetask
-    >>> import lovely.remotetask.interfaces
-    >>> import lovely.remotetask.processor
-    >>> sm = zope.component.getSiteManager()
-    >>> getRootFolder()['tasks'] = tasks = lovely.remotetask.TaskService()
-    >>> tasks.processorFactory = lovely.remotetask.processor.MultiProcessor
-    >>> tasks.processorArguments = {'maxThreads': 1}
-    >>> sm.registerUtility(
-    ...     tasks, lovely.remotetask.interfaces.ITaskService, name='events')
-
-
-.. [#proxy] Note that it might be necessary to manually create security proxies
-    to enable security in the async function.
-
-
-.. [#cleanup] Clean up
-
-    >>> sm.registerUtility(
-    ...     tasks, lovely.remotetask.interfaces.ITaskService, name='events')
-    >>> del gocept.async.tests.heavy_computing
-    >>> del gocept.async.tests.who_am_i
-    >>> del gocept.async.tests.call_another
-    >>> del gocept.async.tests.is_async_test
+>>> sm.registerUtility(
+...     tasks, lovely.remotetask.interfaces.ITaskService, name='events')
+>>> del gocept.async.tests.heavy_computing
+>>> del gocept.async.tests.who_am_i
+>>> del gocept.async.tests.call_another
+>>> del gocept.async.tests.is_async_test

@@ -1,10 +1,10 @@
 # Copyright (c) 2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 
-from zope.testing import doctest
 import StringIO
 import ZODB.POSException
 import cPickle
+import doctest
 import gocept.async
 import gocept.async.task
 import logging
@@ -244,8 +244,7 @@ def test_suite():
     suite.addTest(unittest.makeSuite(TestSite))
 
     readme = zope.app.testing.functional.FunctionalDocFileSuite(
-        'README.txt',
-        optionflags=doctest.INTERPRET_FOOTNOTES)
+        'README.txt')
     readme.layer = async_layer
     suite.addTest(readme)
     return suite
