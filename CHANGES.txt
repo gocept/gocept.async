@@ -4,7 +4,7 @@ Changes
 0.3.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Replace deprecated zope.testing.doctest with stdlib's doctest.
 
 
 0.3.2 (2010-04-14)
