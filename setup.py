@@ -1,6 +1,3 @@
-# Copyright (c) 2007-2009 gocept gmbh & co. kg
-# See also LICENSE.txt
-
 import os.path
 from setuptools import setup, find_packages
 
@@ -18,8 +15,8 @@ setup(
     name = name,
     version = version,
     author = "gocept gmbh & co. kg",
-    author_email = "developers@gocept.com",
-    url = 'http://pypi.python.org/pypi/gocept.async',
+    author_email = "mail@gocept.com",
+    url = 'https://bitbucket.org/gocept/gocept.async',
     description = "Asynchronous function calls using lovely.remotetask",
     long_description = (
         open('README.txt').read() + "\n\n" +

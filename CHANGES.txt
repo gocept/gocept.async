@@ -4,7 +4,7 @@ Changes
 0.3.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Migrate repository to bitbucket.
 
 
 0.3.3 (2011-04-05)
